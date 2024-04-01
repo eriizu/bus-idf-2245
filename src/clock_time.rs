@@ -2,7 +2,7 @@
 pub struct ClockTime(u16);
 
 impl ClockTime {
-    fn new(hours: u16, minutes: u16) -> Option<Self> {
+    pub fn new(hours: u16, minutes: u16) -> Option<Self> {
         if hours >= 24 || minutes >= 60 {
             None
         } else {
@@ -10,22 +10,22 @@ impl ClockTime {
         }
     }
 
-    fn from_str(value: &str) -> Option<Self> {
+    pub fn from_str(value: &str) -> Option<Self> {
         let split = value.split_once(':')?;
         let hours: u16 = split.0.parse().ok()?;
         let minutes: u16 = split.1.parse().ok()?;
         Self::new(hours, minutes)
     }
 
-    fn get_hours(&self) -> u16 {
+    pub fn get_hours(&self) -> u16 {
         self.0 / 60
     }
 
-    fn get_minutes(&self) -> u16 {
+    pub fn get_minutes(&self) -> u16 {
         self.0 % 60
     }
 
-    fn with_hours(&self, value: u16) -> Option<Self> {
+    pub fn with_hours(&self, value: u16) -> Option<Self> {
         if value < 24 {
             Some(Self((self.0 % 60) + value * 60))
         } else {
@@ -33,7 +33,7 @@ impl ClockTime {
         }
     }
 
-    fn with_minutes(&self, value: u16) -> Option<Self> {
+    pub fn with_minutes(&self, value: u16) -> Option<Self> {
         if value < 60 {
             Some(Self((self.0 / 60) * 60 + value))
         } else {

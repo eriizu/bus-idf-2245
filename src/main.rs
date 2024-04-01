@@ -1,15 +1,20 @@
-use std::{error::Error, io, process, u16};
+use std::{
+    error::Error,
+    io::{self, Stdin},
+    process,
+};
 
 mod operating_flags;
 use operating_flags::OperatingFlags;
 mod parser_mlv;
 
 mod clock_time;
+use clock_time::ClockTime;
 
 #[derive(Debug)]
 struct Journey {
     oparates: OperatingFlags,
-    stops: Vec<u32>,
+    stops: Vec<ClockTime>,
 }
 
 impl Journey {
@@ -50,21 +55,44 @@ fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn get_initial_timetable_from_first_line<'a>(
+    cols: impl Iterator<Item = &'a str>,
+) -> Result<TimeTable, Box<dyn Error>> {
+    let mut timetable = TimeTable {
+        journeys: vec![],
+        stop_names: vec![],
+    };
+
+    let flags = parser_mlv::operating_flags_from_iter(cols);
+    flags.iter().for_each(|flags| {
+        timetable.journeys.push(Journey {
+            oparates: *flags,
+            stops: vec![],
+        });
+    });
+    return Ok(timetable);
+}
+
 fn example() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
         .from_reader(io::stdin());
 
-    let mut timetable = TimeTable {
-        journeys: vec![],
-        stop_names: vec![],
+    let mut records = rdr.records();
+    let mut timetable = match records.next() {
+        Some(Ok(record)) => {
+            let cols = record.iter();
+            get_initial_timetable_from_first_line(cols)?
+        }
+        Some(Err(err)) => return Err(Box::new(err)),
+        _ => {
+            eprintln!("no lines to process");
+            return Ok(());
+        }
     };
 
-    let mut first_loop = true;
-
-    // TODO: extract first alloc to run before loop
-    for result in rdr.records() {
+    for result in records {
         let record = result?;
         let mut cols = record.iter();
         let Some(first_col) = cols.next() else {
@@ -73,30 +101,26 @@ fn example() -> Result<(), Box<dyn Error>> {
         };
         if first_col.is_empty() {
             let flags = parser_mlv::operating_flags_from_iter(cols);
-            if first_loop {
-                flags.iter().for_each(|flags| {
-                    timetable.journeys.push(Journey {
-                        oparates: *flags,
-                        stops: vec![],
-                    });
-                });
-                first_loop = false;
-            } else {
-                flags
-                    .iter()
-                    .zip(timetable.journeys.iter_mut())
-                    .for_each(|(flags, journey)| {
-                        journey.oparates |= *flags;
-                    });
-            }
-        } else {
-            timetable
-                .journeys
+            flags
                 .iter()
-                .for_each(|elem| println!("{:?}", elem));
-            todo!("process stop name and add times to journeys");
+                .zip(timetable.journeys.iter_mut())
+                .for_each(|(flags, journey)| {
+                    journey.oparates |= *flags;
+                });
+        } else {
+            cols.zip(timetable.journeys.iter_mut())
+                .for_each(|(col, journey)| {
+                    if let Some(time) = ClockTime::from_str(col) {
+                        journey.stops.push(time);
+                    }
+                });
+            // todo!("process stop name and add times to journeys");
         }
     }
+    timetable
+        .journeys
+        .iter()
+        .for_each(|elem| println!("{:?}", elem));
     Ok(())
 }
 
