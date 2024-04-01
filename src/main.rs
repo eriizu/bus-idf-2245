@@ -108,13 +108,13 @@ fn example() -> Result<(), Box<dyn Error>> {
                     journey.oparates |= *flags;
                 });
         } else {
+            // TODO: add stop names
             cols.zip(timetable.journeys.iter_mut())
                 .for_each(|(col, journey)| {
                     if let Some(time) = ClockTime::from_str(col) {
                         journey.stops.push(time);
                     }
                 });
-            // todo!("process stop name and add times to journeys");
         }
     }
     timetable
