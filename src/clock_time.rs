@@ -1,5 +1,5 @@
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
-struct ClockTime(u16);
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ClockTime(u16);
 
 impl ClockTime {
     fn new(hours: u16, minutes: u16) -> Option<Self> {
@@ -8,6 +8,13 @@ impl ClockTime {
         } else {
             Some(Self(hours * 60 + minutes))
         }
+    }
+
+    fn from_str(value: &str) -> Option<Self> {
+        let split = value.split_once(':')?;
+        let hours: u16 = split.0.parse().ok()?;
+        let minutes: u16 = split.1.parse().ok()?;
+        Self::new(hours, minutes)
     }
 
     fn get_hours(&self) -> u16 {
@@ -79,5 +86,27 @@ mod test {
         assert!(time.with_minutes(60) == None);
         assert!(time.with_minutes(61) == None);
         assert!(time.with_minutes(62) == None);
+    }
+
+    #[test]
+    fn from_str_valid() {
+        let Some(time) = ClockTime::from_str("12:45") else {
+            panic!();
+        };
+        assert!(time.get_hours() == 12);
+        assert!(time.get_minutes() == 45);
+        let Some(time) = ClockTime::from_str("00:00") else {
+            panic!();
+        };
+        assert!(time.get_hours() == 00);
+        assert!(time.get_minutes() == 00);
+    }
+
+    #[test]
+    fn from_str_invalid() {
+        assert_eq!(ClockTime::from_str("12:89"), None);
+        assert_eq!(ClockTime::from_str("12/89"), None);
+        assert_eq!(ClockTime::from_str("12/00"), None);
+        assert_eq!(ClockTime::from_str("9000/30"), None);
     }
 }
