@@ -1,10 +1,10 @@
 use bitflags::bitflags;
 
 bitflags! {
-    #[derive(Copy, Clone)]
+    #[derive(Debug, Copy, Clone)]
     pub struct OperatingFlags: u16 {
         const NEVER = 0;
-        const NOT_HOLIDAYS = 0b00000001;
+        const OUTSIDE_HOLIDAYS = 0b00000001;
         const HOLIDAYS = 0b1 << 1;
         const MONDAY = 0b1 << 2;
         const TUESDAY = 0b1 << 3;
@@ -18,7 +18,7 @@ bitflags! {
 
 impl OperatingFlags {
     pub fn print_all() {
-        println!("{:09b}", OperatingFlags::NOT_HOLIDAYS);
+        println!("{:09b}", OperatingFlags::OUTSIDE_HOLIDAYS);
         println!("{:09b}", OperatingFlags::HOLIDAYS);
         println!("{:09b}", OperatingFlags::MONDAY);
         println!("{:09b}", OperatingFlags::TUESDAY);

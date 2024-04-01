@@ -13,17 +13,21 @@ pub fn time_of_year_from_str_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Ve
 
 fn time_of_year_flag_from_str(value: &str) -> OperatingFlags {
     match value {
-        "A" => OperatingFlags::NOT_HOLIDAYS | OperatingFlags::HOLIDAYS,
-        "SC" => OperatingFlags::NOT_HOLIDAYS,
+        "A" => OperatingFlags::OUTSIDE_HOLIDAYS | OperatingFlags::HOLIDAYS,
+        "SC" => OperatingFlags::OUTSIDE_HOLIDAYS,
         "V" => OperatingFlags::HOLIDAYS,
         _ => OperatingFlags::NEVER,
     }
 }
 
+pub fn operating_flags_from_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<OperatingFlags> {
+    iter.map(time_of_year_and_day_flag_from_str).collect()
+}
+
 fn time_of_year_and_day_flag_from_str(value: &str) -> OperatingFlags {
     match value {
-        "A" => OperatingFlags::NOT_HOLIDAYS | OperatingFlags::HOLIDAYS,
-        "SC" => OperatingFlags::NOT_HOLIDAYS,
+        "A" => OperatingFlags::OUTSIDE_HOLIDAYS | OperatingFlags::HOLIDAYS,
+        "SC" => OperatingFlags::OUTSIDE_HOLIDAYS,
         "V" => OperatingFlags::HOLIDAYS,
         "LàV" => {
             OperatingFlags::MONDAY
