@@ -12,9 +12,15 @@ mod clock_time;
 use clock_time::ClockTime;
 
 #[derive(Debug)]
+struct Stop {
+    time: ClockTime,
+    stop_idx: usize,
+}
+
+#[derive(Debug)]
 struct Journey {
     oparates: OperatingFlags,
-    stops: Vec<ClockTime>,
+    stops: Vec<Stop>,
 }
 
 impl Journey {
@@ -108,11 +114,31 @@ fn example() -> Result<(), Box<dyn Error>> {
                     journey.oparates |= *flags;
                 });
         } else {
+            let stop_name = first_col;
+
+            let stop_name_idx = match timetable
+                .stop_names
+                .iter()
+                .enumerate()
+                .find(|(_, elem)| elem.as_str() == stop_name)
+                .map(|(a, _)| a)
+            {
+                Some(idx) => idx,
+                None => {
+                    timetable.stop_names.push(stop_name.to_owned());
+                    timetable.stop_names.len() - 1
+                }
+            };
+
+            timetable.stop_names.push(stop_name.to_owned());
             // TODO: add stop names
             cols.zip(timetable.journeys.iter_mut())
                 .for_each(|(col, journey)| {
                     if let Some(time) = ClockTime::from_str(col) {
-                        journey.stops.push(time);
+                        journey.stops.push(Stop {
+                            time,
+                            stop_idx: stop_name_idx,
+                        });
                     }
                 });
         }
