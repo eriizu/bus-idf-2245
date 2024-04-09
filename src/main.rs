@@ -32,9 +32,6 @@ impl Journey {
     }
 }
 
-// TODO: extract stop names from csv and push them here
-// TODO: on new line, check if stop aleeady has an entry in names
-// TODO: parse stop time, associate it to stop name idx and push it to stops on journey
 struct TimeTable {
     journeys: Vec<Journey>,
     stop_names: Vec<String>,
