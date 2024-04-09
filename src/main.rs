@@ -40,6 +40,23 @@ struct TimeTable {
     stop_names: Vec<String>,
 }
 
+impl TimeTable {
+    fn pretty_print(&self) {
+        self.journeys.iter().for_each(|journey| {
+            println!("\njourney {}", journey.oparates);
+            journey.stops.iter().for_each(|stop| {
+                println!(
+                    "{:02}:{:02} {} {}",
+                    stop.time.get_hours(),
+                    stop.time.get_minutes(),
+                    stop.stop_idx,
+                    self.stop_names[stop.stop_idx]
+                )
+            })
+        });
+    }
+}
+
 fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
     OperatingFlags::print_all();
     let mut rdr = csv::ReaderBuilder::new()
@@ -143,10 +160,11 @@ fn example() -> Result<(), Box<dyn Error>> {
                 });
         }
     }
-    timetable
-        .journeys
-        .iter()
-        .for_each(|elem| println!("{:?}", elem));
+    // timetable
+    //     .journeys
+    //     .iter()
+    //     .for_each(|elem| println!("{:?}", elem));
+    timetable.pretty_print();
     Ok(())
 }
 
