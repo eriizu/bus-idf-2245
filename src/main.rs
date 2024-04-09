@@ -1,8 +1,4 @@
-use std::{
-    error::Error,
-    io::{self, Stdin},
-    process,
-};
+use std::{error::Error, process};
 
 mod operating_flags;
 use operating_flags::OperatingFlags;
@@ -59,7 +55,7 @@ fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
-        .from_reader(io::stdin());
+        .from_reader(std::io::stdin());
     let record = rdr.records().next().unwrap().unwrap();
     let time_of_year: Vec<OperatingFlags> = parser_mlv::time_of_year_from_record(&record);
 
@@ -90,14 +86,14 @@ fn get_initial_timetable_from_first_line<'a>(
             stops: vec![],
         });
     });
-    return Ok(timetable);
+    Ok(timetable)
 }
 
 fn example() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
-        .from_reader(io::stdin());
+        .from_reader(std::io::stdin());
 
     let mut records = rdr.records();
     let mut timetable = match records.next() {

@@ -6,9 +6,7 @@ pub fn time_of_year_from_record(rec: &StringRecord) -> Vec<OperatingFlags> {
 }
 
 pub fn time_of_year_from_str_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<OperatingFlags> {
-    iter.skip(1)
-        .map(|txt| time_of_year_flag_from_str(txt))
-        .collect()
+    iter.skip(1).map(time_of_year_flag_from_str).collect()
 }
 
 fn time_of_year_flag_from_str(value: &str) -> OperatingFlags {
@@ -78,5 +76,5 @@ pub fn day_of_operation_from_record(rec: &StringRecord) -> Vec<OperatingFlags> {
 pub fn day_of_operation_from_str_iter<'a>(
     iter: impl Iterator<Item = &'a str>,
 ) -> Vec<OperatingFlags> {
-    iter.skip(1).map(|txt| days_flag_from_str(txt)).collect()
+    iter.skip(1).map(days_flag_from_str).collect()
 }
