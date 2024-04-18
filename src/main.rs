@@ -7,48 +7,8 @@ mod parser_mlv;
 mod clock_time;
 use clock_time::ClockTime;
 
-#[derive(Debug)]
-struct Stop {
-    time: ClockTime,
-    stop_idx: usize,
-}
-
-#[derive(Debug)]
-struct Journey {
-    oparates: OperatingFlags,
-    stops: Vec<Stop>,
-}
-
-impl Journey {
-    pub fn new() -> Self {
-        Self {
-            oparates: OperatingFlags::NEVER,
-            stops: vec![],
-        }
-    }
-}
-
-struct TimeTable {
-    journeys: Vec<Journey>,
-    stop_names: Vec<String>,
-}
-
-impl TimeTable {
-    fn pretty_print(&self) {
-        self.journeys.iter().for_each(|journey| {
-            println!("\njourney {}", journey.oparates);
-            journey.stops.iter().for_each(|stop| {
-                println!(
-                    "{:02}:{:02} {} {}",
-                    stop.time.get_hours(),
-                    stop.time.get_minutes(),
-                    stop.stop_idx,
-                    self.stop_names[stop.stop_idx]
-                )
-            })
-        });
-    }
-}
+mod timetable;
+use timetable::{Journey, Stop, TimeTable};
 
 fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
     OperatingFlags::print_all();
@@ -74,19 +34,20 @@ fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
 fn get_initial_timetable_from_first_line<'a>(
     cols: impl Iterator<Item = &'a str>,
 ) -> Result<TimeTable, Box<dyn Error>> {
-    let mut timetable = TimeTable {
-        journeys: vec![],
-        stop_names: vec![],
-    };
+    // let mut timetable = TimeTable {
+    //     journeys: vec![],
+    //     stop_names: vec![],
+    // };
 
     let flags = parser_mlv::operating_flags_from_iter(cols);
-    flags.iter().for_each(|flags| {
-        timetable.journeys.push(Journey {
-            oparates: *flags,
-            stops: vec![],
-        });
-    });
-    Ok(timetable)
+    let tt = TimeTable::new_from_flags(flags.iter().map(|flag_ref| *flag_ref));
+    // flags.iter().for_each(|flags| {
+    //     timetable.journeys.push(Journey {
+    //         oparates: *flags,
+    //         stops: vec![],
+    //     });
+    // });
+    Ok(tt)
 }
 
 fn example() -> Result<(), Box<dyn Error>> {
