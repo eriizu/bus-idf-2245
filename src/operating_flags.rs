@@ -4,7 +4,7 @@ use bitflags::bitflags;
 
 bitflags! {
     #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct OperatingFlags: u16 {
+    pub struct Runs: u16 {
         const NEVER = 0;
         const OUTSIDE_HOLIDAYS = 0b00000001;
         const HOLIDAYS =  0b1 << 1;
@@ -22,11 +22,11 @@ bitflags! {
     }
 }
 
-impl OperatingFlags {
+impl Runs {
     pub fn todays() {}
 }
 
-impl Display for OperatingFlags {
+impl Display for Runs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if *self == Self::NEVER {
             return write!(f, "Never");
@@ -42,25 +42,25 @@ impl Display for OperatingFlags {
             a if a.contains(Self::WORKDAYS) => "Workdays",
             a if a.contains(Self::WEEKENDS) => "Weekends",
             a => {
-                if a.contains(OperatingFlags::MONDAY) {
+                if a.contains(Runs::MONDAY) {
                     temp += "Monday ";
                 }
-                if a.contains(OperatingFlags::TUESDAY) {
+                if a.contains(Runs::TUESDAY) {
                     temp += "Tuesday ";
                 }
-                if a.contains(OperatingFlags::WEDNESDAY) {
+                if a.contains(Runs::WEDNESDAY) {
                     temp += "Wednesday ";
                 }
-                if a.contains(OperatingFlags::THURSDAY) {
+                if a.contains(Runs::THURSDAY) {
                     temp += "Thursday ";
                 }
-                if a.contains(OperatingFlags::FRIDAY) {
+                if a.contains(Runs::FRIDAY) {
                     temp += "Friday ";
                 }
-                if a.contains(OperatingFlags::SATURDAY) {
+                if a.contains(Runs::SATURDAY) {
                     temp += "Saturday ";
                 }
-                if a.contains(OperatingFlags::SUNDAY) {
+                if a.contains(Runs::SUNDAY) {
                     temp += "Sunday";
                 }
                 temp.as_str()

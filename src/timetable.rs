@@ -1,5 +1,5 @@
 use crate::clock_time::ClockTime;
-use crate::operating_flags::OperatingFlags;
+use crate::operating_flags::Runs;
 
 #[derive(Debug)]
 pub struct Stop {
@@ -9,15 +9,15 @@ pub struct Stop {
 
 #[derive(Debug)]
 pub struct Journey {
-    pub oparates: OperatingFlags,
+    pub oparates: Runs,
     pub stops: Vec<Stop>,
 }
 
 impl Journey {
     pub fn default() -> Self {
-        Journey::new_from_flags(OperatingFlags::NEVER)
+        Journey::new_from_flags(Runs::NEVER)
     }
-    pub fn new_from_flags(flags: OperatingFlags) -> Self {
+    pub fn new_from_flags(flags: Runs) -> Self {
         Self {
             oparates: flags,
             stops: vec![],
@@ -31,7 +31,7 @@ pub struct TimeTable {
 }
 
 impl TimeTable {
-    pub fn new_from_flags(flags_iter: impl Iterator<Item = OperatingFlags>) -> Self {
+    pub fn new_from_flags(flags_iter: impl Iterator<Item = Runs>) -> Self {
         let mut journeys = vec![];
         flags_iter.for_each(|flags| {
             journeys.push(Journey::new_from_flags(flags));

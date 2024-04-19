@@ -1,68 +1,56 @@
-use crate::operating_flags::OperatingFlags;
+use crate::operating_flags::Runs;
 use csv::StringRecord;
 
-pub fn time_of_year_from_record(rec: &StringRecord) -> Vec<OperatingFlags> {
+pub fn time_of_year_from_record(rec: &StringRecord) -> Vec<Runs> {
     time_of_year_from_str_iter(rec.iter())
 }
 
-pub fn time_of_year_from_str_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<OperatingFlags> {
+pub fn time_of_year_from_str_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<Runs> {
     iter.skip(1).map(time_of_year_flag_from_str).collect()
 }
 
-fn time_of_year_flag_from_str(value: &str) -> OperatingFlags {
+fn time_of_year_flag_from_str(value: &str) -> Runs {
     match value {
-        "A" => OperatingFlags::OUTSIDE_HOLIDAYS | OperatingFlags::HOLIDAYS,
-        "SC" => OperatingFlags::OUTSIDE_HOLIDAYS,
-        "V" => OperatingFlags::HOLIDAYS,
-        _ => OperatingFlags::NEVER,
+        "A" => Runs::OUTSIDE_HOLIDAYS | Runs::HOLIDAYS,
+        "SC" => Runs::OUTSIDE_HOLIDAYS,
+        "V" => Runs::HOLIDAYS,
+        _ => Runs::NEVER,
     }
 }
 
-pub fn operating_flags_from_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<OperatingFlags> {
+pub fn operating_flags_from_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<Runs> {
     iter.map(time_of_year_and_day_flag_from_str).collect()
 }
 
-fn time_of_year_and_day_flag_from_str(value: &str) -> OperatingFlags {
+fn time_of_year_and_day_flag_from_str(value: &str) -> Runs {
     match value {
-        "A" => OperatingFlags::ALL_YEAR,
-        "SC" => OperatingFlags::OUTSIDE_HOLIDAYS,
-        "V" => OperatingFlags::HOLIDAYS,
-        "LàV" => OperatingFlags::WORKDAYS,
-        "LMJV" => {
-            OperatingFlags::MONDAY
-                | OperatingFlags::TUESDAY
-                | OperatingFlags::THURSDAY
-                | OperatingFlags::FRIDAY
-        }
-        "S" => OperatingFlags::SATURDAY,
-        "D" => OperatingFlags::SUNDAY,
-        "Me" => OperatingFlags::WEDNESDAY,
-        _ => OperatingFlags::NEVER,
+        "A" => Runs::ALL_YEAR,
+        "SC" => Runs::OUTSIDE_HOLIDAYS,
+        "V" => Runs::HOLIDAYS,
+        "LàV" => Runs::WORKDAYS,
+        "LMJV" => Runs::MONDAY | Runs::TUESDAY | Runs::THURSDAY | Runs::FRIDAY,
+        "S" => Runs::SATURDAY,
+        "D" => Runs::SUNDAY,
+        "Me" => Runs::WEDNESDAY,
+        _ => Runs::NEVER,
     }
 }
 
-fn days_flag_from_str(value: &str) -> OperatingFlags {
+fn days_flag_from_str(value: &str) -> Runs {
     match value {
-        "LàV" => OperatingFlags::WORKDAYS,
-        "LMJV" => {
-            OperatingFlags::MONDAY
-                | OperatingFlags::TUESDAY
-                | OperatingFlags::THURSDAY
-                | OperatingFlags::FRIDAY
-        }
-        "S" => OperatingFlags::SATURDAY,
-        "D" => OperatingFlags::SUNDAY,
-        "Me" => OperatingFlags::WEDNESDAY,
-        _ => OperatingFlags::NEVER,
+        "LàV" => Runs::WORKDAYS,
+        "LMJV" => Runs::MONDAY | Runs::TUESDAY | Runs::THURSDAY | Runs::FRIDAY,
+        "S" => Runs::SATURDAY,
+        "D" => Runs::SUNDAY,
+        "Me" => Runs::WEDNESDAY,
+        _ => Runs::NEVER,
     }
 }
 
-pub fn day_of_operation_from_record(rec: &StringRecord) -> Vec<OperatingFlags> {
+pub fn day_of_operation_from_record(rec: &StringRecord) -> Vec<Runs> {
     day_of_operation_from_str_iter(rec.iter())
 }
 
-pub fn day_of_operation_from_str_iter<'a>(
-    iter: impl Iterator<Item = &'a str>,
-) -> Vec<OperatingFlags> {
+pub fn day_of_operation_from_str_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec<Runs> {
     iter.skip(1).map(days_flag_from_str).collect()
 }
