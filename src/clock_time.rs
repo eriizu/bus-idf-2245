@@ -42,6 +42,14 @@ impl ClockTime {
     }
 }
 
+// impl std::str::FromStr for ClockTime {
+//     type Err = &'static str;
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         todo!();
+//         Err("a")
+//     }
+// }
+
 #[cfg(test)]
 mod test {
     use super::*;
