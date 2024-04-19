@@ -34,29 +34,34 @@ fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
 fn get_initial_timetable_from_first_line<'a>(
     cols: impl Iterator<Item = &'a str>,
 ) -> Result<TimeTable, Box<dyn Error>> {
-    // let mut timetable = TimeTable {
-    //     journeys: vec![],
-    //     stop_names: vec![],
-    // };
-
     let flags = parser_mlv::operating_flags_from_iter(cols);
     let tt = TimeTable::new_from_flags(flags.iter().map(|flag_ref| *flag_ref));
-    // flags.iter().for_each(|flags| {
-    //     timetable.journeys.push(Journey {
-    //         oparates: *flags,
-    //         stops: vec![],
-    //     });
-    // });
     Ok(tt)
 }
 
-fn example() -> Result<(), Box<dyn Error>> {
-    let mut rdr = csv::ReaderBuilder::new()
+fn reader_from_stdin() -> csv::Reader<std::io::Stdin> {
+    csv::ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
-        .from_reader(std::io::stdin());
+        .from_reader(std::io::stdin())
+}
 
-    let mut records = rdr.records();
+fn reader_from_bytes_included() -> csv::Reader<&'static [u8]> {
+    let bytes = include_bytes!("../timetable_bus_2245.csv");
+    csv::ReaderBuilder::new()
+        .delimiter(b';')
+        .has_headers(false)
+        .from_reader(bytes)
+}
+
+fn example() -> Result<(), Box<dyn Error>> {
+    // TODO: read from injected file as a string
+    // https://doc.rust-lang.org/std/macro.include_str.html
+    // https://docs.rs/csv/latest/csv/struct.ReaderBuilder.html#method.new
+    // INFO: the goal is to be able to ship this as one binary
+    let mut reader = reader_from_bytes_included();
+
+    let mut records = reader.records();
     let mut timetable = match records.next() {
         Some(Ok(record)) => {
             let cols = record.iter();
@@ -77,41 +82,9 @@ fn example() -> Result<(), Box<dyn Error>> {
             continue;
         };
         if first_col.is_empty() {
-            let flags = parser_mlv::operating_flags_from_iter(cols);
-            flags
-                .iter()
-                .zip(timetable.journeys.iter_mut())
-                .for_each(|(flags, journey)| {
-                    journey.oparates |= *flags;
-                });
+            parse_and_add_operating_flags(cols, &mut timetable);
         } else {
-            let stop_name = first_col;
-
-            let stop_name_idx = match timetable
-                .stop_names
-                .iter()
-                .enumerate()
-                .find(|(_, elem)| elem.as_str() == stop_name)
-                .map(|(a, _)| a)
-            {
-                Some(idx) => idx,
-                None => {
-                    timetable.stop_names.push(stop_name.to_owned());
-                    timetable.stop_names.len() - 1
-                }
-            };
-
-            timetable.stop_names.push(stop_name.to_owned());
-            // TODO: add stop names
-            cols.zip(timetable.journeys.iter_mut())
-                .for_each(|(col, journey)| {
-                    if let Some(time) = ClockTime::from_str(col) {
-                        journey.stops.push(Stop {
-                            time,
-                            stop_idx: stop_name_idx,
-                        });
-                    }
-                });
+            extract_and_add_stop_names(first_col, &mut timetable, cols);
         }
     }
     // timetable
@@ -120,6 +93,33 @@ fn example() -> Result<(), Box<dyn Error>> {
     //     .for_each(|elem| println!("{:?}", elem));
     timetable.pretty_print();
     Ok(())
+}
+
+fn extract_and_add_stop_names(
+    stop_name: &str,
+    timetable: &mut TimeTable,
+    cols: csv::StringRecordIter,
+) {
+    let stop_name_idx = timetable.add_or_get_stop_id(stop_name);
+    cols.zip(timetable.journeys.iter_mut())
+        .for_each(|(col, journey)| {
+            if let Some(time) = ClockTime::from_str(col) {
+                journey.stops.push(Stop {
+                    time,
+                    stop_idx: stop_name_idx,
+                });
+            }
+        });
+}
+
+fn parse_and_add_operating_flags(cols: csv::StringRecordIter, timetable: &mut TimeTable) {
+    let flags = parser_mlv::operating_flags_from_iter(cols);
+    flags
+        .iter()
+        .zip(timetable.journeys.iter_mut())
+        .for_each(|(flags, journey)| {
+            journey.oparates |= *flags;
+        });
 }
 
 fn main() {
