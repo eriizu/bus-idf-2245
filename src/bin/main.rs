@@ -1,12 +1,12 @@
 use std::{error::Error, process};
 
-use bus_20240330::operating_flags::OperatingFlags;
 use csv::StringRecord;
 
-use bus_20240330::clock_time::ClockTime;
-
-use bus_20240330::timetable::{Journey, Stop, TimeTable};
-use bus_20240330::*;
+use bus_20240330::{
+    clock_time::ClockTime,
+    timetable::{Journey, Stop, TimeTable},
+    *,
+};
 
 fn get_initial_timetable_from_first_line<'a>(
     cols: impl Iterator<Item = &'a str>,
