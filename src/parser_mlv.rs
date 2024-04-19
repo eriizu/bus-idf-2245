@@ -24,16 +24,10 @@ pub fn operating_flags_from_iter<'a>(iter: impl Iterator<Item = &'a str>) -> Vec
 
 fn time_of_year_and_day_flag_from_str(value: &str) -> OperatingFlags {
     match value {
-        "A" => OperatingFlags::OUTSIDE_HOLIDAYS | OperatingFlags::HOLIDAYS,
+        "A" => OperatingFlags::ALL_YEAR,
         "SC" => OperatingFlags::OUTSIDE_HOLIDAYS,
         "V" => OperatingFlags::HOLIDAYS,
-        "LàV" => {
-            OperatingFlags::MONDAY
-                | OperatingFlags::TUESDAY
-                | OperatingFlags::WEDNESDAY
-                | OperatingFlags::THURSDAY
-                | OperatingFlags::FRIDAY
-        }
+        "LàV" => OperatingFlags::WORKDAYS,
         "LMJV" => {
             OperatingFlags::MONDAY
                 | OperatingFlags::TUESDAY
@@ -49,13 +43,7 @@ fn time_of_year_and_day_flag_from_str(value: &str) -> OperatingFlags {
 
 fn days_flag_from_str(value: &str) -> OperatingFlags {
     match value {
-        "LàV" => {
-            OperatingFlags::MONDAY
-                | OperatingFlags::TUESDAY
-                | OperatingFlags::WEDNESDAY
-                | OperatingFlags::THURSDAY
-                | OperatingFlags::FRIDAY
-        }
+        "LàV" => OperatingFlags::WORKDAYS,
         "LMJV" => {
             OperatingFlags::MONDAY
                 | OperatingFlags::TUESDAY
