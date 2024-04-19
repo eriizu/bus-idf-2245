@@ -69,10 +69,10 @@ mod test {
 
     #[test]
     fn invalid_time() {
-        assert!(ClockTime::new(15, 60) == None);
-        assert!(ClockTime::new(15, 61) == None);
-        assert!(ClockTime::new(24, 59) == None);
-        assert!(ClockTime::new(25, 59) == None);
+        assert!(ClockTime::new(15, 60).is_none());
+        assert!(ClockTime::new(15, 61).is_none());
+        assert!(ClockTime::new(24, 59).is_none());
+        assert!(ClockTime::new(25, 59).is_none());
     }
 
     #[test]
@@ -80,12 +80,12 @@ mod test {
         let Some(time) = ClockTime::new(15, 56) else {
             panic!();
         };
-        assert!(time.with_hours(24) == None);
-        assert!(time.with_hours(25) == None);
-        assert!(time.with_hours(25) == None);
-        assert!(time.with_minutes(60) == None);
-        assert!(time.with_minutes(61) == None);
-        assert!(time.with_minutes(62) == None);
+        assert!(time.with_hours(24).is_none());
+        assert!(time.with_hours(25).is_none());
+        assert!(time.with_hours(25).is_none());
+        assert!(time.with_minutes(60).is_none());
+        assert!(time.with_minutes(61).is_none());
+        assert!(time.with_minutes(62).is_none());
     }
 
     #[test]

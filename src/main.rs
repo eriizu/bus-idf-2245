@@ -35,7 +35,7 @@ fn get_initial_timetable_from_first_line<'a>(
     cols: impl Iterator<Item = &'a str>,
 ) -> Result<TimeTable, Box<dyn Error>> {
     let flags = parser_mlv::operating_flags_from_iter(cols);
-    let tt = TimeTable::new_from_flags(flags.iter().map(|flag_ref| *flag_ref));
+    let tt = TimeTable::new_from_flags(flags.iter().copied());
     Ok(tt)
 }
 
