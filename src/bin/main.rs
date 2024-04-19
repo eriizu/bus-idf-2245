@@ -1,35 +1,12 @@
 use std::{error::Error, process};
 
-mod operating_flags;
-use operating_flags::OperatingFlags;
-mod parser_mlv;
+use bus_20240330::operating_flags::OperatingFlags;
+use csv::StringRecord;
 
-mod clock_time;
-use clock_time::ClockTime;
+use bus_20240330::clock_time::ClockTime;
 
-mod timetable;
-use timetable::{Journey, Stop, TimeTable};
-
-fn example_journey_operating_flags() -> Result<(), Box<dyn Error>> {
-    OperatingFlags::print_all();
-    let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(b';')
-        .has_headers(false)
-        .from_reader(std::io::stdin());
-    let record = rdr.records().next().unwrap().unwrap();
-    let time_of_year: Vec<OperatingFlags> = parser_mlv::time_of_year_from_record(&record);
-
-    let record = rdr.records().next().unwrap().unwrap();
-    let days: Vec<OperatingFlags> = parser_mlv::day_of_operation_from_record(&record);
-
-    time_of_year
-        .iter()
-        .zip(days.iter())
-        .map(|(a, b)| *a | *b)
-        .enumerate()
-        .for_each(|(idx, val)| println!("{:2}: {:09b}", idx, val));
-    Ok(())
-}
+use bus_20240330::timetable::{Journey, Stop, TimeTable};
+use bus_20240330::*;
 
 fn get_initial_timetable_from_first_line<'a>(
     cols: impl Iterator<Item = &'a str>,
@@ -47,21 +24,16 @@ fn reader_from_stdin() -> csv::Reader<std::io::Stdin> {
 }
 
 fn reader_from_bytes_included() -> csv::Reader<&'static [u8]> {
-    let bytes = include_bytes!("../timetable_bus_2245.csv");
+    let bytes = include_bytes!("../../timetable_bus_2245.csv");
     csv::ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
         .from_reader(bytes)
 }
 
-fn example() -> Result<(), Box<dyn Error>> {
-    // TODO: read from injected file as a string
-    // https://doc.rust-lang.org/std/macro.include_str.html
-    // https://docs.rs/csv/latest/csv/struct.ReaderBuilder.html#method.new
-    // INFO: the goal is to be able to ship this as one binary
-    let mut reader = reader_from_bytes_included();
-
-    let mut records = reader.records();
+fn timetable_from_records(
+    mut records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
+) -> Result<TimeTable, Box<dyn Error>> {
     let mut timetable = match records.next() {
         Some(Ok(record)) => {
             let cols = record.iter();
@@ -69,8 +41,7 @@ fn example() -> Result<(), Box<dyn Error>> {
         }
         Some(Err(err)) => return Err(Box::new(err)),
         _ => {
-            eprintln!("no lines to process");
-            return Ok(());
+            panic!("???");
         }
     };
 
@@ -87,12 +58,20 @@ fn example() -> Result<(), Box<dyn Error>> {
             extract_and_add_stop_names(first_col, &mut timetable, cols);
         }
     }
-    // timetable
-    //     .journeys
-    //     .iter()
-    //     .for_each(|elem| println!("{:?}", elem));
-    timetable.pretty_print();
-    Ok(())
+    Ok(timetable)
+}
+
+fn example() -> Result<(), Box<dyn Error>> {
+    let mut reader = reader_from_bytes_included();
+
+    let mut records = reader.records();
+    match timetable_from_records(records) {
+        Ok(timetable) => {
+            timetable.pretty_print();
+            Ok(())
+        }
+        Err(err) => Err(err),
+    }
 }
 
 fn extract_and_add_stop_names(
