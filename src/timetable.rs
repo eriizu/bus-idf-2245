@@ -1,5 +1,5 @@
 use crate::clock_time::ClockTime;
-use crate::operating_flags::Runs;
+use crate::runs::Runs;
 
 #[derive(Debug)]
 pub struct Stop {

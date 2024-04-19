@@ -1,4 +1,4 @@
-use crate::operating_flags::Runs;
+use crate::runs::Runs;
 use csv::StringRecord;
 
 pub fn time_of_year_from_record(rec: &StringRecord) -> Vec<Runs> {
