@@ -9,4 +9,4 @@ unused = "allow"
 [dependencies]
 bitflags = "2.5.0"
 csv = "1.3.0"
-time = { version = "0.3.36", features = ["macros"] }
+time = { version = "0.3.36", features = ["macros", "std", "local-offset"] }

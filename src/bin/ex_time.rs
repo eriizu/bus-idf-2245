@@ -115,6 +115,12 @@ fn print_is_inside(start: &time::Date, end: &time::Date, x: &time::Date) {
 }
 
 fn main() {
+    // let now = time::OffsetDateTime::now_utc();
+    let now = time::OffsetDateTime::now_local().unwrap();
+
+    println!("{now}");
+    let today = now.date();
+    println!("{today}");
     println!("explore time {}", HOLIDAY_RANGES[0].start);
     let flag = Runs::WORKDAYS;
     let start = time::Date::from_calendar_date(2024, time::Month::April, 15).unwrap();
