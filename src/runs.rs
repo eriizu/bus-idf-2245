@@ -23,7 +23,19 @@ bitflags! {
 }
 
 impl Runs {
-    pub fn todays() {}
+    pub fn from_str(value: &str) -> Self {
+        match value {
+            "A" => Runs::ALL_YEAR,
+            "SC" => Runs::OUTSIDE_HOLIDAYS,
+            "V" => Runs::HOLIDAYS,
+            "LàV" => Runs::WORKDAYS,
+            "LMJV" => Runs::MONDAY | Runs::TUESDAY | Runs::THURSDAY | Runs::FRIDAY,
+            "S" => Runs::SATURDAY,
+            "D" => Runs::SUNDAY,
+            "Me" => Runs::WEDNESDAY,
+            _ => Runs::NEVER,
+        }
+    }
 }
 
 impl Display for Runs {
@@ -67,5 +79,81 @@ impl Display for Runs {
             }
         };
         write!(f, "{} {}", time_of_year, days)
+    }
+}
+
+struct DateRange {
+    start: time::Date,
+    end: time::Date,
+    // flag: OperatingFlags,
+}
+
+const HOLIDAY_RANGES: [DateRange; 2] = [
+    DateRange {
+        start: time::macros::date!(2024 - 04 - 06),
+        end: time::macros::date!(2024 - 04 - 22),
+    },
+    DateRange {
+        start: time::macros::date!(2024 - 06 - 06),
+        end: time::macros::date!(2024 - 09 - 02),
+    },
+];
+
+const BANK_HOLIDAYS: [time::Date; 6] = [
+    time::macros::date!(2024 - 05 - 01),
+    time::macros::date!(2024 - 05 - 08),
+    time::macros::date!(2024 - 05 - 09),
+    time::macros::date!(2024 - 05 - 20),
+    time::macros::date!(2024 - 07 - 14),
+    time::macros::date!(2024 - 08 - 15),
+];
+
+pub fn runs_on_date(date: &time::Date, flags: Runs) -> bool {
+    if !flags.contains(Runs::ALL_YEAR) {
+        let is_holiday = HOLIDAY_RANGES
+            .iter()
+            .find(|range| range.start < *date && *date < range.end)
+            .is_some();
+        if is_holiday != flags.contains(Runs::HOLIDAYS) {
+            return false;
+        }
+    }
+    let is_bank = BANK_HOLIDAYS
+        .iter()
+        .find(|bank_holiday| date == *bank_holiday)
+        .is_some();
+    if is_bank && flags.contains(Runs::SUNDAY) {
+        return true;
+    }
+    return match date.weekday() {
+        time::Weekday::Monday if flags.contains(Runs::MONDAY) => true,
+        time::Weekday::Tuesday if flags.contains(Runs::TUESDAY) => true,
+        time::Weekday::Wednesday if flags.contains(Runs::WEDNESDAY) => true,
+        time::Weekday::Thursday if flags.contains(Runs::THURSDAY) => true,
+        time::Weekday::Friday if flags.contains(Runs::FRIDAY) => true,
+        time::Weekday::Saturday if flags.contains(Runs::SATURDAY) => true,
+        time::Weekday::Sunday if flags.contains(Runs::SUNDAY) => true,
+        _ => false,
+    };
+}
+
+pub fn runs_on(weekday: &time::Weekday, is_bank: bool, is_holiday: bool, flags: Runs) -> bool {
+    if !flags.contains(Runs::ALL_YEAR) {
+        return (is_holiday && flags.contains(Runs::HOLIDAYS))
+            || (!is_holiday && flags.contains(Runs::OUTSIDE_HOLIDAYS));
+    } else {
+        if is_bank && flags.contains(Runs::SUNDAY) {
+            return true;
+        }
+        return match weekday {
+            time::Weekday::Monday if flags.contains(Runs::MONDAY) => true,
+            time::Weekday::Tuesday if flags.contains(Runs::TUESDAY) => true,
+            time::Weekday::Wednesday if flags.contains(Runs::WEDNESDAY) => true,
+            time::Weekday::Thursday if flags.contains(Runs::THURSDAY) => true,
+            time::Weekday::Friday if flags.contains(Runs::FRIDAY) => true,
+            time::Weekday::Saturday if flags.contains(Runs::SATURDAY) => true,
+            time::Weekday::Sunday if flags.contains(Runs::SUNDAY) => true,
+            _ => false,
+        };
     }
 }

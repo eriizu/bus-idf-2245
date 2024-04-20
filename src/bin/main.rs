@@ -1,49 +1,26 @@
-use std::{error::Error, process};
-
-use csv::StringRecord;
+use std::error::Error;
 
 use bus_20240330::{
-    clock_time::ClockTime,
-    timetable::{Journey, Stop, TimeTable},
+    reader::{reader_from_bytes_included, reader_from_bytes_included1},
+    runs::Runs,
+    timetable::TimeTable,
     *,
 };
-
-fn get_initial_timetable_from_first_line<'a>(
-    cols: impl Iterator<Item = &'a str>,
-) -> Result<TimeTable, Box<dyn Error>> {
-    let flags = parser_mlv::operating_flags_from_iter(cols);
-    let tt = TimeTable::new_from_flags(flags.iter().copied());
-    Ok(tt)
-}
-
-fn reader_from_stdin() -> csv::Reader<std::io::Stdin> {
-    csv::ReaderBuilder::new()
-        .delimiter(b';')
-        .has_headers(false)
-        .from_reader(std::io::stdin())
-}
-
-fn reader_from_bytes_included() -> csv::Reader<&'static [u8]> {
-    let bytes = include_bytes!("../../timetable_bus_2245.csv");
-    csv::ReaderBuilder::new()
-        .delimiter(b';')
-        .has_headers(false)
-        .from_reader(bytes)
-}
 
 fn timetable_from_records(
     mut records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
 ) -> Result<TimeTable, Box<dyn Error>> {
-    let mut timetable = match records.next() {
-        Some(Ok(record)) => {
-            let cols = record.iter();
-            get_initial_timetable_from_first_line(cols)?
-        }
+    let record = match records.next() {
+        Some(Ok(record)) => record,
         Some(Err(err)) => return Err(Box::new(err)),
-        _ => {
-            panic!("???");
+        None => {
+            panic!("No more lines, this only happens on empty files, this program shoudn't be packages with an empty file.");
         }
     };
+
+    let cols = record.iter();
+    let flags = cols.skip(1).map(Runs::from_str);
+    let mut timetable = TimeTable::new_from_flags(flags);
 
     for result in records {
         let record = result?;
@@ -53,57 +30,86 @@ fn timetable_from_records(
             continue;
         };
         if first_col.is_empty() {
-            parse_and_add_operating_flags(cols, &mut timetable);
+            timetable.injest_parse_flags(cols);
         } else {
-            extract_and_add_stop_names(first_col, &mut timetable, cols);
+            timetable.injest_stops(first_col, cols);
         }
     }
+    timetable.mark_complete();
     Ok(timetable)
 }
 
-fn example() -> Result<(), Box<dyn Error>> {
+fn add_to_timetable(
+    timetable: &mut TimeTable,
+    mut records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
+) -> Result<(), Box<dyn Error>> {
+    let record = match records.next() {
+        Some(Ok(record)) => record,
+        Some(Err(err)) => return Err(Box::new(err)),
+        None => {
+            panic!("No more lines, this only happens on empty files, this program shoudn't be packages with an empty file.");
+        }
+    };
+
+    let cols = record.iter();
+    let flags = cols.skip(1).map(Runs::from_str);
+    timetable.injest_flags_new_journeys(flags);
+
+    for result in records {
+        let record = result?;
+        let mut cols = record.iter();
+        let Some(first_col) = cols.next() else {
+            eprintln!("ignoring line, no columns");
+            continue;
+        };
+        if first_col.is_empty() {
+            timetable.injest_parse_flags(cols);
+        } else {
+            timetable.injest_stops(first_col, cols);
+        }
+    }
+    timetable.mark_complete();
+    Ok(())
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
     let mut reader = reader_from_bytes_included();
 
-    let mut records = reader.records();
-    match timetable_from_records(records) {
-        Ok(timetable) => {
-            timetable.pretty_print();
-            Ok(())
-        }
-        Err(err) => Err(err),
-    }
-}
+    let records = reader.records();
+    let mut timetable = match timetable_from_records(records) {
+        Ok(timetable) => timetable,
+        Err(err) => return Err(err),
+    };
 
-fn extract_and_add_stop_names(
-    stop_name: &str,
-    timetable: &mut TimeTable,
-    cols: csv::StringRecordIter,
-) {
-    let stop_name_idx = timetable.add_or_get_stop_id(stop_name);
-    cols.zip(timetable.journeys.iter_mut())
-        .for_each(|(col, journey)| {
-            if let Some(time) = ClockTime::from_str(col) {
-                journey.stops.push(Stop {
-                    time,
-                    stop_idx: stop_name_idx,
-                });
-            }
-        });
-}
+    let mut reader = reader_from_bytes_included1();
+    let records = reader.records();
+    match add_to_timetable(&mut timetable, records) {
+        Err(err) => return Err(err),
+        _ => {}
+    };
 
-fn parse_and_add_operating_flags(cols: csv::StringRecordIter, timetable: &mut TimeTable) {
-    let flags = parser_mlv::operating_flags_from_iter(cols);
-    flags
+    timetable.pretty_print();
+    println!("\n##########\n");
+    println!("\n##########\n");
+    let now = time::OffsetDateTime::now_local().unwrap();
+    let today = now.date();
+    println!("{today}");
+    timetable
+        .journeys
         .iter()
-        .zip(timetable.journeys.iter_mut())
-        .for_each(|(flags, journey)| {
-            journey.oparates |= *flags;
+        .filter(|journey| {
+            let res = runs::runs_on_date(&today, journey.oparates);
+            println!("{}: {}", res, journey.oparates);
+            res
+        })
+        .for_each(|journey| {
+            journey.pretty_print(&timetable.stop_names);
+            println!("\n##########\n");
         });
-}
-
-fn main() {
-    if let Err(err) = example() {
-        println!("error running example: {}", err);
-        process::exit(1);
-    }
+    timetable
+        .journeys
+        .last()
+        .unwrap()
+        .pretty_print(&timetable.stop_names);
+    Ok(())
 }
