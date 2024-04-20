@@ -1,11 +1,6 @@
 use std::error::Error;
 
-use bus_20240330::{
-    reader::{reader_from_bytes_included, reader_from_bytes_included1},
-    runs::Runs,
-    timetable::TimeTable,
-    *,
-};
+use bus_20240330::{reader::reader_from_bytes, runs::Runs, timetable::TimeTable, *};
 
 fn timetable_from_records(
     mut records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
@@ -73,43 +68,54 @@ fn add_to_timetable(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut reader = reader_from_bytes_included();
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w1.csv"));
 
     let records = reader.records();
-    let mut timetable = match timetable_from_records(records) {
-        Ok(timetable) => timetable,
+    let mut timetable = TimeTable::new();
+    match add_to_timetable(&mut timetable, records) {
         Err(err) => return Err(err),
+        _ => {}
     };
+    // let mut timetable = match timetable_from_records(records) {
+    //     Ok(timetable) => timetable,
+    //     Err(err) => return Err(err),
+    // };
 
-    let mut reader = reader_from_bytes_included1();
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w2.csv"));
+    let records = reader.records();
+    match add_to_timetable(&mut timetable, records) {
+        Err(err) => return Err(err),
+        _ => {}
+    };
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we1.csv"));
+    let records = reader.records();
+    match add_to_timetable(&mut timetable, records) {
+        Err(err) => return Err(err),
+        _ => {}
+    };
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we2.csv"));
     let records = reader.records();
     match add_to_timetable(&mut timetable, records) {
         Err(err) => return Err(err),
         _ => {}
     };
 
-    timetable.pretty_print();
-    println!("\n##########\n");
-    println!("\n##########\n");
-    let now = time::OffsetDateTime::now_local().unwrap();
-    let today = now.date();
+    // timetable.pretty_print();
+    // let now = time::OffsetDateTime::now_local().unwrap();
+    // let today = now.date();
+    let today = time::macros::date!(2024 - 04 - 21);
     println!("{today}");
     timetable
         .journeys
         .iter()
         .filter(|journey| {
             let res = runs::runs_on_date(&today, journey.oparates);
-            println!("{}: {}", res, journey.oparates);
+            // println!("{}: {}", res, journey.oparates);
             res
         })
         .for_each(|journey| {
             journey.pretty_print(&timetable.stop_names);
             println!("\n##########\n");
         });
-    timetable
-        .journeys
-        .last()
-        .unwrap()
-        .pretty_print(&timetable.stop_names);
     Ok(())
 }

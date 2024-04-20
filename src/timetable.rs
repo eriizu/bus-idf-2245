@@ -45,6 +45,13 @@ pub struct TimeTable {
 }
 
 impl TimeTable {
+    pub fn new() -> Self {
+        Self {
+            journeys: vec![],
+            stop_names: vec![],
+            complete_journeys: 0,
+        }
+    }
     pub fn new_from_flags(flags_iter: impl Iterator<Item = Runs>) -> Self {
         let mut journeys = vec![];
         flags_iter.for_each(|flags| {
