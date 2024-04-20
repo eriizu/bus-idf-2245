@@ -85,7 +85,6 @@ impl Display for Runs {
 struct DateRange {
     start: time::Date,
     end: time::Date,
-    // flag: OperatingFlags,
 }
 
 const HOLIDAY_RANGES: [DateRange; 2] = [
