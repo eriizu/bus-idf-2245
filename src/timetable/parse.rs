@@ -48,7 +48,6 @@ fn read_and_parse(timetable: &mut TimeTable, bytes: &'static [u8]) -> Result<(),
 }
 
 /// Parse the csv timetables integrated into this binary.
-// TODO: factorise this funciton
 pub fn parse_files() -> Result<TimeTable, Box<dyn Error>> {
     let mut timetable = TimeTable::new();
     read_and_parse(

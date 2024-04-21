@@ -5,7 +5,7 @@ use runs::Runs;
 
 #[derive(Debug)]
 pub struct Stop {
-    pub time: ClockTime,
+    pub time: time::Time,
     pub stop_idx: usize,
 }
 
@@ -34,12 +34,12 @@ impl Journey {
 
     /// "pretty" print the contents of a journey, moslty for debugging.
     pub fn pretty_print(&self, stop_names: &Vec<String>) {
-        println!("\njourney {}", self.oparates);
+        // println!("\njourney {}", self.oparates);
         self.stops.iter().for_each(|stop| {
             println!(
                 "{:02}:{:02} {:02} {}",
-                stop.time.get_hours(),
-                stop.time.get_minutes(),
+                stop.time.hour(),
+                stop.time.minute(),
                 stop.stop_idx,
                 stop_names[stop.stop_idx]
             )
@@ -105,11 +105,13 @@ impl TimeTable {
         stop_name: &str,
         cols_time_strs: impl Iterator<Item = &'a str>,
     ) {
+        static FORMAT: &'static [time::format_description::BorrowedFormatItem<'static>] =
+            time::macros::format_description!("[hour]:[minute]");
         let stop_name_idx = self.add_or_get_stop_id(stop_name);
         cols_time_strs
             .zip(self.journeys.iter_mut().skip(self.complete_journeys))
             .for_each(|(col, journey)| {
-                if let Some(time) = ClockTime::from_str(col) {
+                if let Ok(time) = time::Time::parse(col, FORMAT) {
                     journey.stops.push(Stop {
                         time,
                         stop_idx: stop_name_idx,
