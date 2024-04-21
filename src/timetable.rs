@@ -1,5 +1,7 @@
+pub mod parse;
+pub mod runs;
 use crate::clock_time::ClockTime;
-use crate::runs::Runs;
+use runs::Runs;
 
 #[derive(Debug)]
 pub struct Stop {

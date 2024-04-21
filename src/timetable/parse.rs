@@ -1,5 +1,5 @@
 mod reader;
-use crate::{runs::Runs, timetable::TimeTable};
+use super::{runs::Runs, TimeTable};
 use reader::*;
 use std::error::Error;
 
@@ -37,7 +37,7 @@ fn add_to_timetable(
 }
 
 pub fn parse_files() -> Result<TimeTable, Box<dyn Error>> {
-    let mut reader = reader_from_bytes(include_bytes!("../timetable_bus_2245w1.csv"));
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w1.csv"));
 
     let records = reader.records();
     let mut timetable = TimeTable::new();
@@ -46,19 +46,19 @@ pub fn parse_files() -> Result<TimeTable, Box<dyn Error>> {
         _ => {}
     };
 
-    let mut reader = reader_from_bytes(include_bytes!("../timetable_bus_2245w2.csv"));
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w2.csv"));
     let records = reader.records();
     match add_to_timetable(&mut timetable, records) {
         Err(err) => return Err(err),
         _ => {}
     };
-    let mut reader = reader_from_bytes(include_bytes!("../timetable_bus_2245we1.csv"));
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we1.csv"));
     let records = reader.records();
     match add_to_timetable(&mut timetable, records) {
         Err(err) => return Err(err),
         _ => {}
     };
-    let mut reader = reader_from_bytes(include_bytes!("../timetable_bus_2245we2.csv"));
+    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we2.csv"));
     let records = reader.records();
     match add_to_timetable(&mut timetable, records) {
         Err(err) => return Err(err),

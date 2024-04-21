@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use bus_20240330::{parse::parse_files, runs::runs_on_date};
+use bus_20240330::{timetable::parse::parse_files, timetable::runs::runs_on_date};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let timetable = match parse_files() {
@@ -9,9 +9,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     // timetable.pretty_print();
-    // let now = time::OffsetDateTime::now_local().unwrap();
-    // let today = now.date();
-    let today = time::macros::date!(2024 - 04 - 21);
+    let now = time::OffsetDateTime::now_local().unwrap();
+    let today = now.date();
+    // let today = time::macros::date!(2024 - 04 - 21);
     println!("{today}");
     timetable
         .journeys
