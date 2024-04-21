@@ -1,5 +1,4 @@
-use bus_20240330::timetable::runs::Runs;
-
+#[allow(dead_code)]
 struct DateRange {
     start: time::Date,
     end: time::Date,
@@ -32,7 +31,6 @@ fn main() {
     let today = now.date();
     println!("{today}");
     println!("explore time {}", HOLIDAY_RANGES[0].start);
-    let flag = Runs::WORKDAYS;
     let start = time::Date::from_calendar_date(2024, time::Month::April, 15).unwrap();
     let end = time::Date::from_calendar_date(2024, time::Month::April, 28).unwrap();
     println!("start {}", start);
