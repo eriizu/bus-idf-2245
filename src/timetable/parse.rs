@@ -11,7 +11,11 @@ fn add_to_timetable(
         Some(Ok(record)) => record,
         Some(Err(err)) => return Err(Box::new(err)),
         None => {
-            panic!("No more lines, this only happens on empty files, this program shoudn't be packages with an empty file.");
+            panic!(
+                "{}{}",
+                "No more lines, this only happens on empty files,",
+                "this program shoudn't be packages with an empty file."
+            );
         }
     };
 
@@ -36,33 +40,32 @@ fn add_to_timetable(
     Ok(())
 }
 
+fn read_and_parse(timetable: &mut TimeTable, bytes: &'static [u8]) -> Result<(), Box<dyn Error>> {
+    let mut reader = reader_from_bytes(bytes);
+
+    let records = reader.records();
+    add_to_timetable(timetable, records)
+}
+
+/// Parse the csv timetables integrated into this binary.
+// TODO: factorise this funciton
 pub fn parse_files() -> Result<TimeTable, Box<dyn Error>> {
-    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w1.csv"));
-
-    let records = reader.records();
     let mut timetable = TimeTable::new();
-    match add_to_timetable(&mut timetable, records) {
-        Err(err) => return Err(err),
-        _ => {}
-    };
-
-    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245w2.csv"));
-    let records = reader.records();
-    match add_to_timetable(&mut timetable, records) {
-        Err(err) => return Err(err),
-        _ => {}
-    };
-    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we1.csv"));
-    let records = reader.records();
-    match add_to_timetable(&mut timetable, records) {
-        Err(err) => return Err(err),
-        _ => {}
-    };
-    let mut reader = reader_from_bytes(include_bytes!("../../timetable_bus_2245we2.csv"));
-    let records = reader.records();
-    match add_to_timetable(&mut timetable, records) {
-        Err(err) => return Err(err),
-        _ => {}
-    };
+    read_and_parse(
+        &mut timetable,
+        include_bytes!("../../timetable_bus_2245w1.csv"),
+    )?;
+    read_and_parse(
+        &mut timetable,
+        include_bytes!("../../timetable_bus_2245w2.csv"),
+    )?;
+    read_and_parse(
+        &mut timetable,
+        include_bytes!("../../timetable_bus_2245we1.csv"),
+    )?;
+    read_and_parse(
+        &mut timetable,
+        include_bytes!("../../timetable_bus_2245we2.csv"),
+    )?;
     Ok(timetable)
 }
