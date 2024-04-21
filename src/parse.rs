@@ -1,4 +1,6 @@
-use crate::{reader::*, runs::Runs, timetable::TimeTable};
+mod reader;
+use crate::{runs::Runs, timetable::TimeTable};
+use reader::*;
 use std::error::Error;
 
 fn add_to_timetable(
