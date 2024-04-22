@@ -34,7 +34,7 @@ impl Journey {
 
     /// "pretty" print the contents of a journey, moslty for debugging.
     pub fn pretty_print(&self, stop_names: &Vec<String>) {
-        // println!("\njourney {}", self.oparates);
+        println!("\njourney {}", self.oparates);
         self.stops.iter().for_each(|stop| {
             println!(
                 "{:02}:{:02} {:02} {}",
@@ -73,7 +73,7 @@ impl TimeTable {
 
     /// Get the position (inside the stop_names vector) of a stop, by name
     /// Used during parsing.
-    fn get_stop_id(&self, stop_name: &str) -> Option<usize> {
+    pub fn get_stop_id(&self, stop_name: &str) -> Option<usize> {
         self.stop_names
             .iter()
             .enumerate()
@@ -105,18 +105,22 @@ impl TimeTable {
         stop_name: &str,
         cols_time_strs: impl Iterator<Item = &'a str>,
     ) {
-        static FORMAT: &'static [time::format_description::BorrowedFormatItem<'static>] =
-            time::macros::format_description!("[hour]:[minute]");
         let stop_name_idx = self.add_or_get_stop_id(stop_name);
         cols_time_strs
             .zip(self.journeys.iter_mut().skip(self.complete_journeys))
             .for_each(|(col, journey)| {
-                if let Ok(time) = time::Time::parse(col, FORMAT) {
-                    journey.stops.push(Stop {
-                        time,
-                        stop_idx: stop_name_idx,
-                    });
-                }
+                if let Some((hours_str, minutes_str)) = col.split_once(':') {
+                    if let (Ok(hours), Ok(minutes)) =
+                        (hours_str.parse::<u8>(), minutes_str.parse::<u8>())
+                    {
+                        if let Ok(time) = time::Time::from_hms(hours, minutes, 0) {
+                            journey.stops.push(Stop {
+                                time,
+                                stop_idx: stop_name_idx,
+                            });
+                        };
+                    };
+                };
             });
     }
 
