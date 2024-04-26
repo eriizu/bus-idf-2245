@@ -36,10 +36,9 @@ impl Journey {
     pub fn pretty_print(&self, stop_names: &Vec<String>) {
         self.stops.iter().for_each(|stop| {
             println!(
-                "{:02}:{:02} {:02} {}",
+                "{:02}:{:02} {}",
                 stop.time.hour(),
                 stop.time.minute(),
-                stop.stop_idx,
                 stop_names[stop.stop_idx]
             )
         })
@@ -54,10 +53,9 @@ impl Journey {
             }
             if past_start {
                 println!(
-                    "{:02}:{:02} {:02} {}",
+                    "{:02}:{:02} {}",
                     stop.time.hour(),
                     stop.time.minute(),
-                    stop.stop_idx,
                     stop_names[stop.stop_idx]
                 )
             }
