@@ -39,24 +39,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start_stop = ans.unwrap();
     let start_stop_id = timetable.get_stop_id(start_stop).unwrap();
     let now_date = time::OffsetDateTime::now_local().unwrap();
-    // let now_date = time::macros::datetime!(2024 - 04 - 24 17:26);
+    let now_date = time::macros::datetime!(2024 - 04 - 24 17:26);
     let today = now_date.date();
     let now_time = now_date.time();
-    let filter = mk_filter_for_stop(start_stop_id, today, now_time).unwrap();
+    // let filter = mk_filter_for_stop(start_stop_id, today, now_time).unwrap();
     timetable
         .journeys
         .iter()
-        .filter(|journey| filter(journey))
-        .take(3)
-        .for_each(|journey| {
+        .filter_map(|journey| {
             if let Some(stop) = journey
                 .stops
                 .iter()
                 .find(|stop| stop.stop_idx == start_stop_id)
             {
-                if stop.time < now_time {
-                    println!("(should have already departed)");
-                }
+                Some((journey, stop))
+            } else {
+                None
+            }
+        })
+        .filter(|(journey, stop)| {
+            let time = now_time - time::Duration::minutes(10);
+            runs_on_date(&today, journey.oparates) && stop.time > time
+        })
+        .take(3)
+        .for_each(|(journey, stop)| {
+            if stop.time < now_time {
+                println!("(should have already departed)");
             }
             journey.pretty_print_from_stop_id(&timetable.stop_names, start_stop_id);
             println!("\n");
