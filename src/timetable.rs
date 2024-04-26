@@ -34,7 +34,6 @@ impl Journey {
 
     /// "pretty" print the contents of a journey, moslty for debugging.
     pub fn pretty_print(&self, stop_names: &Vec<String>) {
-        println!("\njourney {}", self.oparates);
         self.stops.iter().for_each(|stop| {
             println!(
                 "{:02}:{:02} {:02} {}",
@@ -44,6 +43,25 @@ impl Journey {
                 stop_names[stop.stop_idx]
             )
         })
+    }
+
+    /// "pretty" print the contents of a journey, moslty for debugging.
+    pub fn pretty_print_from_stop_id(&self, stop_names: &Vec<String>, stop_id: usize) {
+        let mut past_start: bool = false;
+        for stop in &self.stops {
+            if stop.stop_idx == stop_id {
+                past_start = true;
+            }
+            if past_start {
+                println!(
+                    "{:02}:{:02} {:02} {}",
+                    stop.time.hour(),
+                    stop.time.minute(),
+                    stop.stop_idx,
+                    stop_names[stop.stop_idx]
+                )
+            }
+        }
     }
 }
 
