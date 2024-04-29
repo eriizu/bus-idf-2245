@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start_stop = ans.unwrap();
     let start_stop_id = timetable.get_stop_id(start_stop).unwrap();
     let now_date = time::OffsetDateTime::now_local().unwrap();
-    let now_date = time::macros::datetime!(2024 - 04 - 24 17:26);
+    // let now_date = time::macros::datetime!(2024 - 04 - 24 17:26);
     let today = now_date.date();
     let now_time = now_date.time();
     // let filter = mk_filter_for_stop(start_stop_id, today, now_time).unwrap();
