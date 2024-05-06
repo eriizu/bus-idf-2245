@@ -10,34 +10,7 @@ struct Opt {
     number_to_show: Option<usize>,
 }
 
-use fuse_rust::{Fuse, SearchResult};
-
-fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
-    dbg!(&stops);
-    if let Some(depart_from) = &opt.depart_from {
-        let fuse = Fuse::default();
-        let results = fuse.search_text_in_iterable(depart_from, stops.iter());
-        // return None;
-        let max = results
-            .iter()
-            .reduce(|acc, item| if item.score < acc.score { item } else { acc });
-        if let Some(max) = max {
-            println!("{} max: {}", depart_from, stops[max.index]);
-            Some(stops[max.index].to_owned())
-        } else {
-            None
-        }
-    } else {
-        use inquire::{error::InquireError, Select};
-
-        let ans: Result<&str, InquireError> = Select::new("Depart from?", stops).prompt();
-        if let Ok(ans) = ans {
-            Some(ans.to_owned())
-        } else {
-            None
-        }
-    }
-}
+use fuse_rust::Fuse;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Opt::parse();
@@ -91,4 +64,33 @@ fn print_next_buses(
             journey.pretty_print_from_stop_id(&tt.stop_names, start_stop_id);
             println!("\n");
         });
+}
+
+fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
+    if let Some(depart_from) = &opt.depart_from {
+        get_closest_stop_name(depart_from, stops)
+    } else {
+        use inquire::{error::InquireError, Select};
+
+        let ans: Result<&str, InquireError> = Select::new("Depart from?", stops).prompt();
+        if let Ok(ans) = ans {
+            Some(ans.to_owned())
+        } else {
+            None
+        }
+    }
+}
+
+fn get_closest_stop_name<'a>(stop_name: &str, stops: Vec<&'a str>) -> Option<String> {
+    let fuse = Fuse::default();
+    let results = fuse.search_text_in_iterable(stop_name, stops.iter());
+    if let Some(best_result) =
+        results
+            .iter()
+            .reduce(|acc, item| if item.score < acc.score { item } else { acc })
+    {
+        Some(stops[best_result.index].to_owned())
+    } else {
+        None
+    }
 }
