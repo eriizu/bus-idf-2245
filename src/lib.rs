@@ -17,30 +17,16 @@ fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
     if let Some(depart_from) = &opt.depart_from {
         let fuse = Fuse::default();
         let results = fuse.search_text_in_iterable(depart_from, stops.iter());
-        println!("---------------------- {}", results.len());
         // return None;
         let max = results
             .iter()
-            .zip(stops.iter())
-            .map(|(a, b)| (a, *b))
-            .for_each(|(a, b)| {
-                println!("{}", b);
-                dbg!(a);
-            });
-        None
-        //     .reduce(|(acc, name_acc), (item, name_item)| {
-        //         if item.score > acc.score {
-        //             (item, name_item)
-        //         } else {
-        //             (acc, name_acc)
-        //         }
-        //     });
-        // if let Some((_, name)) = max {
-        //     println!("{} max: {}", depart_from, name);
-        //     Some(name.to_owned())
-        // } else {
-        //     None
-        // }
+            .reduce(|acc, item| if item.score < acc.score { item } else { acc });
+        if let Some(max) = max {
+            println!("{} max: {}", depart_from, stops[max.index]);
+            Some(stops[max.index].to_owned())
+        } else {
+            None
+        }
     } else {
         use inquire::{error::InquireError, Select};
 
