@@ -76,6 +76,7 @@ dependencies = [
  "bitflags 2.5.0",
  "clap",
  "csv",
+ "fuse-rust",
  "inquire",
  "serde",
  "time",
@@ -199,6 +200,12 @@ name = "dyn-clone"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d6ef0072f8a535281e4876be788938b528e9a1d43900b82c2569af7da799125"
+
+[[package]]
+name = "fuse-rust"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b38318e0ccdb981874116e30c87ef64ceb9934dbc78d960c365788f7584ca74"
 
 [[package]]
 name = "fuzzy-matcher"

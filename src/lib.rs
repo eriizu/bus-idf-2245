@@ -10,13 +10,41 @@ struct Opt {
     number_to_show: Option<usize>,
 }
 
-fn get_departure_stop<'a>(opt: &Opt, stops: impl Iterator<Item = &'a str>) -> Option<String> {
+use fuse_rust::{Fuse, SearchResult};
+
+fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
+    dbg!(&stops);
     if let Some(depart_from) = &opt.depart_from {
-        Some(depart_from.to_owned())
+        let fuse = Fuse::default();
+        let results = fuse.search_text_in_iterable(depart_from, stops.iter());
+        println!("---------------------- {}", results.len());
+        // return None;
+        let max = results
+            .iter()
+            .zip(stops.iter())
+            .map(|(a, b)| (a, *b))
+            .for_each(|(a, b)| {
+                println!("{}", b);
+                dbg!(a);
+            });
+        None
+        //     .reduce(|(acc, name_acc), (item, name_item)| {
+        //         if item.score > acc.score {
+        //             (item, name_item)
+        //         } else {
+        //             (acc, name_acc)
+        //         }
+        //     });
+        // if let Some((_, name)) = max {
+        //     println!("{} max: {}", depart_from, name);
+        //     Some(name.to_owned())
+        // } else {
+        //     None
+        // }
     } else {
         use inquire::{error::InquireError, Select};
 
-        let ans: Result<&str, InquireError> = Select::new("Depart from?", stops.collect()).prompt();
+        let ans: Result<&str, InquireError> = Select::new("Depart from?", stops).prompt();
         if let Ok(ans) = ans {
             Some(ans.to_owned())
         } else {
@@ -28,22 +56,29 @@ fn get_departure_stop<'a>(opt: &Opt, stops: impl Iterator<Item = &'a str>) -> Op
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Opt::parse();
     let tt = timetable::parse::parse_files()?;
-    let Some(depart_from) =
-        get_departure_stop(&opt, tt.stop_names.iter().map(|item| item.as_str()))
-    else {
+    let Some(depart_from) = get_departure_stop(
+        &opt,
+        tt.stop_names.iter().map(|item| item.as_str()).collect(),
+    ) else {
         // TODO: actually return an error
         return Ok(());
     };
-    let number_to_show = opt.number_to_show.unwrap_or(3);
+    let take = opt.number_to_show.unwrap_or(3);
     // let datetime = time::OffsetDateTime::now_local().unwrap();
     let datetime = time::macros::datetime!(2024 - 05 - 06 08:00);
     let today = datetime.date();
     let now = datetime.time();
-    aaa(tt, depart_from.as_str(), today, now);
+    print_next_buses(tt, depart_from.as_str(), today, now, take);
     Ok(())
 }
 
-fn aaa(tt: timetable::TimeTable, start_stop_name: &str, day: time::Date, clock_time: time::Time) {
+fn print_next_buses(
+    tt: timetable::TimeTable,
+    start_stop_name: &str,
+    day: time::Date,
+    clock_time: time::Time,
+    take: usize,
+) {
     let start_stop_id = tt.get_stop_id(start_stop_name).unwrap();
     tt.journeys
         .iter()
@@ -62,7 +97,7 @@ fn aaa(tt: timetable::TimeTable, start_stop_name: &str, day: time::Date, clock_t
             let time = clock_time - time::Duration::minutes(10);
             timetable::runs::runs_on_date(&day, journey.oparates) && stop.time > time
         })
-        .take(3)
+        .take(take)
         .for_each(|(journey, stop)| {
             if stop.time < clock_time {
                 println!("(should have already departed)");
