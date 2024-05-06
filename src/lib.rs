@@ -23,8 +23,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     };
     let take = opt.number_to_show.unwrap_or(3);
-    // let datetime = time::OffsetDateTime::now_local().unwrap();
-    let datetime = time::macros::datetime!(2024 - 05 - 06 08:00);
+    let datetime = time::OffsetDateTime::now_local().unwrap();
+    // let datetime = time::macros::datetime!(2024 - 05 - 06 08:00);
     let today = datetime.date();
     let now = datetime.time();
     print_next_buses(tt, depart_from.as_str(), today, now, take);
