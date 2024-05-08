@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
 use bitflags::bitflags;
+use std::fmt::Display;
 
 bitflags! {
     #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -41,44 +40,26 @@ impl Runs {
 impl Display for Runs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if *self == Self::NEVER {
-            return write!(f, "Never");
+            return write!(f, "Never runs.");
         }
         let time_of_year = match *self {
-            a if a.contains(Self::ALL_YEAR) => "All year",
-            a if a.contains(Self::OUTSIDE_HOLIDAYS) => "Outside Holidays",
-            a if a.contains(Self::HOLIDAYS) => "Holidays",
+            a if a.contains(Self::ALL_YEAR) => "(runs all year)",
+            a if a.contains(Self::OUTSIDE_HOLIDAYS) => "(runs outside Holidays)",
+            a if a.contains(Self::HOLIDAYS) => "(runs during holidays)",
             _ => "",
         };
-        let mut temp = String::new();
-        let days = match *self {
-            a if a.contains(Self::WORKDAYS) => "Workdays",
-            a if a.contains(Self::WEEKENDS) => "Weekends",
-            a => {
-                if a.contains(Runs::MONDAY) {
-                    temp += "Monday ";
-                }
-                if a.contains(Runs::TUESDAY) {
-                    temp += "Tuesday ";
-                }
-                if a.contains(Runs::WEDNESDAY) {
-                    temp += "Wednesday ";
-                }
-                if a.contains(Runs::THURSDAY) {
-                    temp += "Thursday ";
-                }
-                if a.contains(Runs::FRIDAY) {
-                    temp += "Friday ";
-                }
-                if a.contains(Runs::SATURDAY) {
-                    temp += "Saturday ";
-                }
-                if a.contains(Runs::SUNDAY) {
-                    temp += "Sunday";
-                }
-                temp.as_str()
-            }
-        };
-        write!(f, "{} {}", time_of_year, days)
+        writeln!(f, "MTWTFSS {}", time_of_year)?;
+        let mut bit: usize = 2;
+        while bit < 9 {
+            let char = if (self.bits() & (1 << bit)) != 0 {
+                'x'
+            } else {
+                ' '
+            };
+            write!(f, "{char}")?;
+            bit += 1;
+        }
+        return writeln!(f, "");
     }
 }
 
