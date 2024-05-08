@@ -20,7 +20,6 @@ pub fn run() {
         &opt,
         tt.stop_names.iter().map(|item| item.as_str()).collect(),
     ) else {
-        // TODO: actually return an error
         eprintln!("failed to ask or match stop name");
         return;
     };
