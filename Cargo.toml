@@ -1,5 +1,5 @@
 [package]
-name = "bus_20240330"
+name = "bus_mlv_2245"
 version = "0.1.0"
 edition = "2021"
 default-run = "bus"
