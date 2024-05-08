@@ -1,3 +1,3 @@
 fn main() {
-    bus_mlv_2245::run();
+    bus_idf_2245::run();
 }
