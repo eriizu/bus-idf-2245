@@ -117,7 +117,7 @@ impl TimeTable {
     /// Inject a complete line of stop times to the existing journeys.
     /// Always call "Timetable::mark_complete" when done injesting lines for
     /// the journeys.
-    pub fn injest_stops<'a>(
+    pub fn journeys_add_stops<'a>(
         &mut self,
         stop_name: &str,
         cols_time_strs: impl Iterator<Item = &'a str>,
@@ -144,14 +144,9 @@ impl TimeTable {
     /// Parse running flags and add them to the existing journeys.
     /// If a flag was already present, for instance "runs all year", and we
     /// are adding "runs on Tuesdays": the two will be combined.
-    /// Skips journeys marked as complete.
-    /// Using during parsing.
-    pub fn injest_parse_flags<'a>(
-        self: &mut TimeTable,
-        cols_operation_strs: impl Iterator<Item = &'a str>,
-    ) {
-        cols_operation_strs
-            .map(Runs::from_str)
+    /// Skips journeys marked as complete. Used during parsing.
+    pub fn journeys_add_flags<'a>(self: &mut TimeTable, flags: impl Iterator<Item = Runs>) {
+        flags
             .zip(self.journeys.iter_mut().skip(self.complete_journeys))
             .for_each(|(flags, journey)| {
                 journey.operates |= flags;
@@ -166,7 +161,9 @@ impl TimeTable {
     }
 
     /// Adds new journeys to the timetable, with the run flags given.
-    pub fn injest_flags_new_journeys(&mut self, flags: impl Iterator<Item = Runs>) {
+    /// Always call this function before "add_flags_to_journeys" or
+    /// "add_stops_to_journeys", they need the journeys to exist.
+    pub fn journeys_new_from_flags(&mut self, flags: impl Iterator<Item = Runs>) {
         flags
             .map(|flag| Journey::new_from_flags(flag))
             .for_each(|journey| self.journeys.push(journey));

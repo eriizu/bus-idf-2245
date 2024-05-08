@@ -5,37 +5,30 @@ use std::error::Error;
 
 fn add_to_timetable(
     timetable: &mut TimeTable,
-    mut records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
+    records: impl Iterator<Item = csv::Result<csv::StringRecord>>,
 ) -> Result<(), Box<dyn Error>> {
-    let record = match records.next() {
-        Some(Ok(record)) => record,
-        Some(Err(err)) => return Err(Box::new(err)),
-        None => {
-            panic!(
-                "{}{}",
-                "No more lines, this only happens on empty files,",
-                "this program shoudn't be packages with an empty file."
-            );
-        }
-    };
-
-    let cols = record.iter();
-    let flags = cols.skip(1).map(Runs::from_str);
-    timetable.injest_flags_new_journeys(flags);
-
-    for result in records {
-        let record = result?;
-        let mut cols = record.iter();
-        let Some(first_col) = cols.next() else {
+    let mut iter = records.filter_map(|record_result| match record_result {
+        Ok(record) => Some(record),
+        _ => None,
+    });
+    iter.by_ref().take(1).for_each(|first_line| {
+        let cols = first_line.iter();
+        let flags = cols.skip(1).map(Runs::from_str);
+        timetable.journeys_new_from_flags(flags);
+    });
+    iter.for_each(|line| {
+        let mut cols = line.iter();
+        let Some(stop_name) = cols.next() else {
             eprintln!("ignoring line, no columns");
-            continue;
+            return;
         };
-        if first_col.is_empty() {
-            timetable.injest_parse_flags(cols);
+        if stop_name.is_empty() {
+            let flags = cols.map(Runs::from_str);
+            timetable.journeys_add_flags(flags);
         } else {
-            timetable.injest_stops(first_col, cols);
+            timetable.journeys_add_stops(stop_name, cols);
         }
-    }
+    });
     timetable.mark_complete();
     Ok(())
 }
