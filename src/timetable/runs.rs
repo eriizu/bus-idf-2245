@@ -121,8 +121,8 @@ pub fn runs_on_date(date: &time::Date, flags: Runs) -> bool {
         .iter()
         .find(|bank_holiday| date == *bank_holiday)
         .is_some();
-    if is_bank && flags.contains(Runs::SUNDAY) {
-        return true;
+    if is_bank {
+        return flags.contains(Runs::SUNDAY);
     }
     return match date.weekday() {
         time::Weekday::Monday if flags.contains(Runs::MONDAY) => true,

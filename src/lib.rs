@@ -8,9 +8,13 @@ use serde::{Deserialize, Serialize};
 struct Opt {
     depart_from: Option<String>,
     number_to_show: Option<usize>,
-}
 
-use fuse_rust::Fuse;
+    #[arg(short, long, default_value_t = false)]
+    long: bool,
+
+    #[arg(short, long)]
+    on: Option<String>,
+}
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Opt::parse();
@@ -24,14 +28,55 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     };
     let take = opt.number_to_show.unwrap_or(3);
     let datetime = time::OffsetDateTime::now_local().unwrap();
+    println!("{}", datetime);
     // let datetime = time::macros::datetime!(2024 - 05 - 06 08:00);
     let today = datetime.date();
     let now = datetime.time();
-    print_next_buses(tt, depart_from.as_str(), today, now, take);
+    if opt.long {
+        print_next_buses_routes(tt, depart_from.as_str(), today, now, take);
+    } else {
+        print_next_buses_times(tt, depart_from.as_str(), today, now, take);
+    }
     Ok(())
 }
 
-fn print_next_buses(
+fn print_next_buses_times(
+    tt: timetable::TimeTable,
+    start_stop_name: &str,
+    day: time::Date,
+    clock_time: time::Time,
+    take: usize,
+) {
+    let start_stop_id = tt.get_stop_id(start_stop_name).unwrap();
+    println!("departues from \"{}\":", start_stop_name);
+    tt.journeys
+        .iter()
+        .filter_map(|journey| {
+            if let Some(stop) = journey
+                .stops
+                .iter()
+                .find(|stop| stop.stop_idx == start_stop_id)
+            {
+                Some((journey, stop))
+            } else {
+                None
+            }
+        })
+        .filter(|(journey, stop)| {
+            let time = clock_time - time::Duration::minutes(10);
+            timetable::runs::runs_on_date(&day, journey.oparates) && stop.time > time
+        })
+        .take(take)
+        .for_each(|(_, stop)| {
+            if stop.time < clock_time {
+                print!("{:02}:{:02} (due), ", stop.time.hour(), stop.time.minute());
+            } else {
+                print!("{:02}:{:02}, ", stop.time.hour(), stop.time.minute());
+            }
+        });
+    println!("...");
+}
+fn print_next_buses_routes(
     tt: timetable::TimeTable,
     start_stop_name: &str,
     day: time::Date,
@@ -82,6 +127,7 @@ fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
 }
 
 fn get_closest_stop_name<'a>(stop_name: &str, stops: Vec<&'a str>) -> Option<String> {
+    use fuse_rust::Fuse;
     let fuse = Fuse::default();
     let results = fuse.search_text_in_iterable(stop_name, stops.iter());
     if let Some(best_result) =
