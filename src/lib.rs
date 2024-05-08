@@ -61,7 +61,7 @@ fn print_next_buses_times(
         })
         .filter(|(journey, stop)| {
             let time = clock_time - time::Duration::minutes(10);
-            timetable::runs::runs_on_date(&day, journey.oparates) && stop.time > time
+            timetable::runs::runs_on_date(&day, journey.operates) && stop.time > time
         })
         .take(take);
 

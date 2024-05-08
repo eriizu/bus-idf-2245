@@ -12,7 +12,7 @@ pub struct Stop {
 /// it run.
 #[derive(Debug)]
 pub struct Journey {
-    pub oparates: Runs,
+    pub operates: Runs,
     pub stops: Vec<Stop>,
 }
 
@@ -26,14 +26,14 @@ impl Journey {
     /// any stops yet.
     pub fn new_from_flags(flags: Runs) -> Self {
         Self {
-            oparates: flags,
+            operates: flags,
             stops: vec![],
         }
     }
 
     /// "pretty" print the contents of a journey, moslty for debugging.
     pub fn pretty_print(&self, stop_names: &Vec<String>) {
-        println!("{}", self.oparates);
+        println!("{}", self.operates);
         self.stops.iter().for_each(|stop| {
             println!(
                 "{:02}:{:02} {}",
@@ -46,7 +46,7 @@ impl Journey {
 
     /// "pretty" print the contents of a journey, moslty for debugging.
     pub fn pretty_print_from_stop_id(&self, stop_names: &Vec<String>, stop_id: usize) {
-        println!("{}", self.oparates);
+        println!("{}", self.operates);
         let mut past_start: bool = false;
         for stop in &self.stops {
             if stop.stop_idx == stop_id {
@@ -154,7 +154,7 @@ impl TimeTable {
             .map(Runs::from_str)
             .zip(self.journeys.iter_mut().skip(self.complete_journeys))
             .for_each(|(flags, journey)| {
-                journey.oparates |= flags;
+                journey.operates |= flags;
             });
     }
 
