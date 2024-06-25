@@ -43,7 +43,7 @@ fn print_next_buses_times(
     let start_stop_id = tt
         .get_stop_id(start_stop_name)
         .expect("geting stop by id (should already be checked)");
-    println!("departues from \"{}\":", start_stop_name);
+    println!("departures from \"{}\":", start_stop_name);
     let iter = tt
         .journeys
         .iter()

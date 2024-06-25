@@ -74,7 +74,7 @@ const HOLIDAY_RANGES: [DateRange; 2] = [
         end: time::macros::date!(2024 - 04 - 22),
     },
     DateRange {
-        start: time::macros::date!(2024 - 06 - 06),
+        start: time::macros::date!(2024 - 07 - 06),
         end: time::macros::date!(2024 - 09 - 02),
     },
 ];
