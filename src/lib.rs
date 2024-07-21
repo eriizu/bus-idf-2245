@@ -48,15 +48,11 @@ fn print_next_buses_times(
         .journeys
         .iter()
         .filter_map(|journey| {
-            if let Some(stop) = journey
+            journey
                 .stops
                 .iter()
                 .find(|stop| stop.stop_idx == start_stop_id)
-            {
-                Some((journey, stop))
-            } else {
-                None
-            }
+                .map(|stop| (journey, stop))
         })
         .filter(|(journey, stop)| {
             let time = clock_time - time::Duration::minutes(10);
@@ -92,7 +88,7 @@ fn print_next_buses_times(
     }
 }
 
-fn get_departure_stop<'a>(opt: &Opt, stops: Vec<&'a str>) -> Option<String> {
+fn get_departure_stop(opt: &Opt, stops: Vec<&str>) -> Option<String> {
     if let Some(depart_from) = &opt.depart_from {
         get_best_matching_stop_name(depart_from, stops)
     } else {
@@ -111,17 +107,12 @@ fn ask_for_deperture_stop(stops: Vec<&str>) -> Option<String> {
     }
 }
 
-fn get_best_matching_stop_name<'a>(stop_name: &str, stops: Vec<&'a str>) -> Option<String> {
+fn get_best_matching_stop_name(stop_name: &str, stops: Vec<&str>) -> Option<String> {
     use fuse_rust::Fuse;
     let fuse = Fuse::default();
     let results = fuse.search_text_in_iterable(stop_name, stops.iter());
-    if let Some(best_result) =
-        results
-            .iter()
-            .reduce(|acc, item| if item.score < acc.score { item } else { acc })
-    {
-        Some(stops[best_result.index].to_owned())
-    } else {
-        None
-    }
+    results
+        .iter()
+        .reduce(|acc, item| if item.score < acc.score { item } else { acc })
+        .map(|best_result| stops[best_result.index].to_owned())
 }
